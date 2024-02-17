@@ -14,24 +14,35 @@
            </form>
            ';
     ?>
-   <ul>
-       <?php
-           $host = getenv("BACKEND_HOST");
-           $port = getenv("BACKEND_PORT");
-           $json = file_get_contents('http://'.$host.':'.$port.'/');
-           $obj = json_decode($json);
-           $todos = $obj->todos;
-           foreach ($todos as $todo){
-               echo "<li>$todo->msg</li>";
-           }
-       ?>
+   <ul id="list">
+
    </ul>
    <script>
-    $("#add").submit(function(e){
-      e.preventDefault()
-      const host = "<?php echo getenv("BACKEND_HOST"); ?>"
+     const host = "<?php echo getenv("BACKEND_HOST"); ?>";
+     
+     const port = <?php echo getenv("BACKEND_PORT"); ?>;
 
-      const port = <?php echo getenv("BACKEND_PORT"); ?>
+     console.log(`http://${host}:${port}`);
+    $(document).ready(function(e) {
+      $.ajax({
+        url: `http://${host}:${port}`,
+        method: "GET",
+        success: function(data) {
+          console.log(data);
+          let content = '';
+          data.todos.forEach((d) => {
+            content += `
+              <li>${d.msg}</li>
+            `
+          });
+          $("#list").html(content);
+        }
+      });
+    });
+
+    $("#add").submit(function(e){
+      e.preventDefault();
+      
 
 
       const data = $('#add').serialize();
@@ -40,10 +51,23 @@
         data,
         method: "POST",
         success: function() {
-          window.location = window.location
+          $.ajax({
+            url: `http://${host}:${port}`,
+            method: "GET",
+            success: function(data) {
+              console.log(data);
+              let content = '';
+              data.todos.forEach((d) => {
+                content += `
+                  <li>${d.msg}</li>
+                `
+              });
+              $("#list").html(content);
+            }
+          });
         }
-      })
-    })
+      });
+    });
     </script>
 </body>
 </html>
